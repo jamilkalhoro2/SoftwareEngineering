@@ -1,0 +1,45 @@
+Paper 2 
+
+Title And Authors:- 
+
+Forking Without Clicking: on How to Identify Software Repository Forks 
+
+Antoine Pietri 
+
+Guillaume Rousseau 
+
+Stefano Zacchiroli 
+
+Conference Program MSR 2020 
+
+Introduction And Motivation:-  
+
+How developers and software communities work on their projects, and how this relationship evolves over time, have been topics of interest in software engineering research for many decades. The first drawback of trusting platform metadata as source of truth for what repository is a fork is that it is platform-specific. One cannot identify as forks repositories hosted on GitHub that has been forked from, say, GitLab, or more generally non-GitHub hosted repositories, and vice-versa. Similarly, although arguably less relevant from a quantitative point of view, one cannot recognize as forks, say, Git repositories used to collaborate with Subversion repositories via git-svn. For a fork ecosystem to be properly studied via the current approach, all the parallel development must happen using the same VCS and on the same platform. While the prevalence of Git does not seem to be waning, Git code hosting diversity is increasing, making the platform-specific part of this problem potentially severe. A second, more subtle methodological drawback is that trusting platform metadata introduces a selection bias on both the amount and type of forks that are considered. The fact that social coding platform strongly encourage, and sometimes even automate, the creation of forked repositories as the main way to contribute even the smallest one-liner change, inflates the number of forks. Many of these (soft) forks will be short-lived in terms of development activity. Hard forks will comparatively be more long lived and will not necessarily reside on the same code hosting platform. The example of the Linux kernel community is revealing in this respect: several copies of the full development history of Linux exist on GitHub, but are not recognizable as forks of torvalds/linux according to platform metadata, because kernel development does not primarily happen on GitHub and kernel developers create their repositories using git clone. 
+
+Research And Methodology:-  
+
+WHAT IS A FORK? 
+
+In this section we explore the spectrum of possible definitions of what constitutes a fork. In the following we will use the term “fork” to mean a forked software repository, without discriminating between “hostile” (or hard forks, according to the terminology of [36]) and development forks. We propose three definitions, corresponding to three types of forks—type 1 to 3, reminiscent of code clone classification [27, 30]—along a spectrum of increased sharing of artifacts commonly found in version control systems (VCS), such as commits and source code directories. The first definition, of type 1 forks, relies solely on code hosting platform information and requires no explicit VCS artifact sharing between repositories to be considered forks (although it allows it): Definition 2.1 (Type 1 fork, or forge fork). A repository 𝐵 hosted on code hosting platform 𝑃 is a type 1 fork (or forge fork) of repository 𝐴 hosted on the same platform, written 𝐴 ⇝1 𝐵, if 𝐵 has been created with an explicit “fork repository 𝐴” action on platform 𝑃. Although informal and seemingly trivial, this definition is both meaningful and actionable on current major code hosting platforms. For example, GitHub stores an explicit “forked from” relationship and makes it available via its repositories API:1 The parent and source objects are present when the repository is a fork. parent is the repository this repository was forked from, source is the ultimate source for the network. 
+
+Methodology:-  
+
+Our goal is to experimentally determine the amount and structure of forks for the various definitions we have introduced. To do so we will use two datasets: the Software Heritage Graph Dataset [25], which contains the development history needed to find intrinsic fork relationships, and a reference forge-specific dataset, GHTorrent [12], which contains the fork ancestry relationships as captured by GitHub GHTorrent. GitHub is the largest public software forge, and is therefore the candidate of choice to study forge forks (type 1). GHTorrent [12] crawls and archives GitHub via its REST API and makes periodical data dumps available in a relational table format. In its database schema, the project table contains a unique identifier for each repository, and a forked_from column contains the ID of the repository it has been forked from if the repository is considered to be a forge forks. A single SQL query on this table allows to extract the full graph of GitHub-declared forks. 
+
+Fork networks:- 
+
+The easiest way to get a first sense of the amount and structure of forks according to the various definitions is to find all fork networks, as per Definition 2.4. This can be done in linear time with a simple graph traversal with linear complexity: two repositories are in the same network if and only if there exists a path between them in the undirected subgraph of origins and revisions. (We recall from the dataset section that we have removed the snapshot and revision layers, so that root commits are directly pointed by repository nodes.) 
+
+Fork cliques:- 
+
+While partitioning the corpus in fork networks gives a good idea of how intrinsic forks are linked together, it can group together repositories that are not forks of each other, as the intrinsic fork relationship is not transitive. Figure 6 shows a pattern, that we have verified as commonly found in the wild, where two different cliques will be merged in the same fork network—A and B are part of the same clique as they share development history; the same applies to B and C; whereas A and C do not share any part of their respective development histories but will end up in the same network. We expect this effect to merge cliques into giant components, that will make the size of the largest networks hard to interpret. The other interesting metric that can be looked at is the distribution of fork cliques, as defined in Definition 2.5. While cliques do not provide a partition function for the graph, they allow to narrow down the actual extent of forking relationships within large fork networks. 
+
+Result:- 
+
+We identified 71.9 M repositories in common between the Software Heritage Graph Dataset and GHTorrent, 41.4 M of which are nonempty. We focused our experiments on these repositories. different for shared root forks, where the average size is ≈ 10.5 and the frequency distribution is significantly farther from the reference distribution of forge forks. One distinguishing feature of each distribution of type 2 and type 3 forks is the size of the largest connected component, which is significantly larger than the largest networks of forge forks (by a factor of 17 for shared revision forks, and 157 for shared root forks). As discussed in Section 3.3, this is an expected outcome of our use of network as a quantification metric and confirms the need for further analysis through fork cliques. This does not however have any implications on the quantification aspect of the experiment, as partitioning this network further using fork cliques would still yield the same number of non-isolated repositories. 
+
+Conclusion:- 
+
+When relying only on forge-specific features and metadata to identify forked repositories, empirical studies on software forks might incur into selection and methodological biases. This is because repository forking can happen exogenously to any specific code hosting platform and out of band, especially when using distributed version control system (DVCS), which are currently very popular among developers. We also showed that the aggregation/merge dynamics into larger clusters of related repositories upon changing fork definitions is not just an absorption phenomenon into a “super attractor” cluster, but that it concerns all clusters: smaller ones are absorbed into larger ones of any size. The methodological implications of our findings are that: • Empirical software engineering studies on software forks aiming to be exhaustive in their coverage of forked repositories should consider using fork definitions based on shared VCS history rather than trusting forge-specific metadata. • Depending on the research question at hand, the objects of studies to consider when looking at repositories involved in forks are either fork networks or fork cliques. The latter have the advantage of excluding cases that exist in the wild (e.g., on GitHub) in which repositories that do not share VCS artifacts might end up in the same fork network due to transitiveness. • Any set of repositories can be partitioned in accordance with its relevant shared commit fork cliques by computing its fork p-clique partition function. This way of grouping together repositories that are all type 2 forks of each other is easily substitutable to partition approaches based on forge fork metadata. 
+
+ 
